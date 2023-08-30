@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,6 +23,9 @@ import java.util.concurrent.TimeUnit;
  *      2、注解配置：为Job方法添加注解 "@XxlJob(value="自定义jobhandler名称", init = "JobHandler初始化方法", destroy = "JobHandler销毁方法")"，注解value值对应的是调度中心新建任务的JobHandler属性的值。
  *      3、执行日志：需要通过 "XxlJobHelper.log" 打印执行日志；
  *      4、任务结果：默认任务结果为 "成功" 状态，不需要主动设置；如有诉求，比如设置任务结果为失败，可以通过 "XxlJobHelper.handleFail/handleSuccess" 自主设置任务结果；
+ *
+ *
+ * 问题：目前任务无法自动注册，如果任务较多，会比较麻烦，因此可以开发一个自动注册任务（starter）功能：参考：https://blog.csdn.net/zlfjavahome/article/details/131403419
  *
  * @author xuxueli 2019-12-11 21:52:51
  */
@@ -43,6 +47,26 @@ public class SampleXxlJob {
         // default success
     }
 
+
+    @XxlJob("demoJobHandler3")
+    public void demoJobHandler3() throws Exception {
+        XxlJobHelper.log("XXL-JOB, Hello World.");
+
+        for (int i = 0; i < 5; i++) {
+            XxlJobHelper.log("beat at:" + i);
+            TimeUnit.SECONDS.sleep(2);
+        }
+        // default success
+    }
+
+    @XxlJob("alarmTest")
+    public void alarmTest() throws InterruptedException {
+        XxlJobHelper.log("XXL-JOB, alarmTest.");
+        logger.info("----------alarmTest------------");
+        // 告警测试
+        Thread.sleep(1000 * 60 * 60);
+
+    }
 
     /**
      * 2、分片广播任务

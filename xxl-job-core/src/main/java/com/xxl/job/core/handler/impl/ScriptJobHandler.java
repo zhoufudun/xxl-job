@@ -11,6 +11,8 @@ import java.io.File;
 
 /**
  * Created by xuxueli on 17/4/27.
+ *
+ * 执行脚本
  */
 public class ScriptJobHandler extends IJobHandler {
 
@@ -31,6 +33,9 @@ public class ScriptJobHandler extends IJobHandler {
             File[] glueSrcFileList = glueSrcPath.listFiles();
             if (glueSrcFileList!=null && glueSrcFileList.length>0) {
                 for (File glueSrcFileItem : glueSrcFileList) {
+                    /**
+                     * 脚本文件的为”jobId_*“开头
+                     */
                     if (glueSrcFileItem.getName().startsWith(String.valueOf(jobId)+"_")) {
                         glueSrcFileItem.delete();
                     }
@@ -78,6 +83,9 @@ public class ScriptJobHandler extends IJobHandler {
 
         // invoke
         XxlJobHelper.log("----------- script file:"+ scriptFileName +" -----------");
+        /**
+         * 执行脚本
+         */
         int exitValue = ScriptUtil.execToFile(cmd, scriptFileName, logFileName, scriptParams);
 
         if (exitValue == 0) {

@@ -21,16 +21,19 @@ public class JobLogFileCleanThread {
     private static Logger logger = LoggerFactory.getLogger(JobLogFileCleanThread.class);
 
     private static JobLogFileCleanThread instance = new JobLogFileCleanThread();
-    public static JobLogFileCleanThread getInstance(){
+
+    public static JobLogFileCleanThread getInstance() {
         return instance;
     }
 
     private Thread localThread;
     private volatile boolean toStop = false;
-    public void start(final long logRetentionDays){
+
+    public void start(final long logRetentionDays) {
 
         // limit min value
-        if (logRetentionDays < 3 ) {
+        if (logRetentionDays < 3) {
+            logger.warn("logRetentionDays<3 days, no need start log clean thread");
             return;
         }
 
@@ -41,20 +44,20 @@ public class JobLogFileCleanThread {
                     try {
                         // clean log dir, over logRetentionDays
                         File[] childDirs = new File(XxlJobFileAppender.getLogPath()).listFiles();
-                        if (childDirs!=null && childDirs.length>0) {
+                        if (childDirs != null && childDirs.length > 0) {
 
                             // today
                             Calendar todayCal = Calendar.getInstance();
-                            todayCal.set(Calendar.HOUR_OF_DAY,0);
-                            todayCal.set(Calendar.MINUTE,0);
-                            todayCal.set(Calendar.SECOND,0);
-                            todayCal.set(Calendar.MILLISECOND,0);
+                            todayCal.set(Calendar.HOUR_OF_DAY, 0);
+                            todayCal.set(Calendar.MINUTE, 0);
+                            todayCal.set(Calendar.SECOND, 0);
+                            todayCal.set(Calendar.MILLISECOND, 0);
 
                             Date todayDate = todayCal.getTime();
 
-                            for (File childFile: childDirs) {
+                            for (File childFile : childDirs) {
 
-                                // valid
+                                // valid：必须是目录：例如：logPath/yyyy-MM-dd
                                 if (!childFile.isDirectory()) {
                                     continue;
                                 }
@@ -65,6 +68,7 @@ public class JobLogFileCleanThread {
                                 // file create date
                                 Date logFileCreateDate = null;
                                 try {
+                                    // 日志文件例子：logPath/yyyy-MM-dd/9999.log
                                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                                     logFileCreateDate = simpleDateFormat.parse(childFile.getName());
                                 } catch (ParseException e) {
@@ -74,21 +78,20 @@ public class JobLogFileCleanThread {
                                     continue;
                                 }
 
-                                if ((todayDate.getTime()-logFileCreateDate.getTime()) >= logRetentionDays * (24 * 60 * 60 * 1000) ) {
+                                // 日志文件创建的时间超过了配置的logRetentionDays的值，需要删除该文件
+                                if ((todayDate.getTime() - logFileCreateDate.getTime()) >= logRetentionDays * (24 * 60 * 60 * 1000)) {
+                                    // 递归删除目录下的文件，例如：logPath/yyyy-MM-dd/ 目录下的文件全部删除
                                     FileUtil.deleteRecursively(childFile);
                                 }
-
                             }
                         }
-
                     } catch (Exception e) {
                         if (!toStop) {
                             logger.error(e.getMessage(), e);
                         }
-
                     }
-
                     try {
+                        // 一天执行一次：是否可以优化为业务低峰期执行？
                         TimeUnit.DAYS.sleep(1);
                     } catch (InterruptedException e) {
                         if (!toStop) {

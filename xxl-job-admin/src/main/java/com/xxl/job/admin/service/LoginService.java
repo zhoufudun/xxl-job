@@ -25,7 +25,11 @@ public class LoginService {
     @Resource
     private XxlJobUserDao xxlJobUserDao;
 
-
+    /**
+     * 用户信息的json用来产生tokenHex
+     * @param xxlJobUser
+     * @return
+     */
     private String makeToken(XxlJobUser xxlJobUser){
         String tokenJson = JacksonUtil.writeValueAsString(xxlJobUser);
         String tokenHex = new BigInteger(tokenJson.getBytes()).toString(16);

@@ -59,6 +59,8 @@ public class XxlJobFileAppender {
 	/**
 	 * log filename, like "logPath/yyyy-MM-dd/9999.log"
 	 *
+	 * 9999是logId，每次执行一个任务都有一个logId，递增，每次执行完毕本地都会有一个文件结尾为logId.log结尾的日志
+	 *
 	 * @param triggerDate
 	 * @param logId
 	 * @return
@@ -81,7 +83,7 @@ public class XxlJobFileAppender {
 	}
 
 	/**
-	 * append log
+	 * append log：是否可以改为异步写文件？
 	 *
 	 * @param logFileName
 	 * @param appendLog

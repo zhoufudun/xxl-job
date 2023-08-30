@@ -30,7 +30,7 @@ public class CookieUtil {
 	}
 
 	/**
-	 * 保存
+	 * 保存cookie，并且放入应答中
 	 *
 	 * @param response
 	 * @param key

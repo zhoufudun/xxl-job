@@ -71,7 +71,7 @@ public class SampleXxlJob {
 
 
     /**
-     * 3、命令行任务
+     * 3、命令行任务(执行linux指令)
      */
     @XxlJob("commandJobHandler")
     public void commandJobHandler() throws Exception {

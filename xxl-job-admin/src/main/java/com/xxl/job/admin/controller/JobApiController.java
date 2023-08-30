@@ -29,7 +29,7 @@ public class JobApiController {
     private AdminBiz adminBiz;
 
     /**
-     * api
+     * api 开头的统一进入api方法
      *
      * @param uri
      * @param data

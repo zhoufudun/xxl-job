@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by xuxueli on 16/7/22.
+ *
+ *
  */
 public class TriggerCallbackThread {
     private static Logger logger = LoggerFactory.getLogger(TriggerCallbackThread.class);
@@ -32,9 +34,16 @@ public class TriggerCallbackThread {
     }
 
     /**
-     * job results callback queue
+     * job results callback queue：
+     *
+     * 客户端处理完成调度中心发起的任务后，将应答信息保存到队列中，由本线程将应答信息回复给调度中心
      */
-    private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
+    private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<>();
+
+    /**
+     * 某个任务执行完毕后会将应答回调信息保存到callBackQueue,由本线程将应答信息回复给调度中心
+     * @param callback
+     */
     public static void pushCallBack(HandleCallbackParam callback){
         getInstance().callBackQueue.add(callback);
         logger.debug(">>>>>>>>>>> xxl-job, push callback request, logId:{}", callback.getLogId());
@@ -46,6 +55,10 @@ public class TriggerCallbackThread {
     private Thread triggerCallbackThread;
     private Thread triggerRetryCallbackThread;
     private volatile boolean toStop = false;
+
+    /**
+     * 处理执行任务完毕后的回调
+     */
     public void start() {
 
         // valid
@@ -67,8 +80,8 @@ public class TriggerCallbackThread {
                         if (callback != null) {
 
                             // callback list param
-                            List<HandleCallbackParam> callbackParamList = new ArrayList<HandleCallbackParam>();
-                            int drainToNum = getInstance().callBackQueue.drainTo(callbackParamList);
+                            List<HandleCallbackParam> callbackParamList = new ArrayList<>();
+                            getInstance().callBackQueue.drainTo(callbackParamList);
                             callbackParamList.add(callback);
 
                             // callback, will retry if error
@@ -158,6 +171,8 @@ public class TriggerCallbackThread {
 
     /**
      * do callback, will retry if error
+     *
+     * 具体任务执行结果回复给调度中心集群所有节点
      * @param callbackParamList
      */
     private void doCallback(List<HandleCallbackParam> callbackParamList){
@@ -177,6 +192,9 @@ public class TriggerCallbackThread {
                 callbackLog(callbackParamList, "<br>----------- xxl-job job callback error, errorMsg:" + e.getMessage());
             }
         }
+        /**
+         * 回调给调度中心失败的任务，先记录日志，再由triggerRetryCallbackThread重试执行回调
+         */
         if (!callbackRet) {
             appendFailCallbackFile(callbackParamList);
         }

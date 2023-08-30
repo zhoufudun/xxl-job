@@ -86,8 +86,15 @@ public class IndexController {
 		return "help";
 	}
 
-	@InitBinder
+	/**
+	 * 详情参考：【https://blog.csdn.net/weixin_43888891/article/details/127348918】
+	 * @param binder
+	 */
+	@InitBinder // 只对当前controller有效
 	public void initBinder(WebDataBinder binder) {
+		/**
+		 * 对于请求参数中的时间类型，我们定义了格式，请求进来会校验
+		 */
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		dateFormat.setLenient(false);
 		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));

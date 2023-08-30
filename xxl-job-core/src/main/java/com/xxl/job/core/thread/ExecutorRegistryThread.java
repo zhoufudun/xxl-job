@@ -23,6 +23,12 @@ public class ExecutorRegistryThread {
 
     private Thread registryThread;
     private volatile boolean toStop = false;
+
+    /**
+     * 30s 一次向所有调度中心注册一次，和心跳一样
+     * @param appname
+     * @param address
+     */
     public void start(final String appname, final String address){
 
         // valid
@@ -62,11 +68,11 @@ public class ExecutorRegistryThread {
                         if (!toStop) {
                             logger.error(e.getMessage(), e);
                         }
-
                     }
 
                     try {
                         if (!toStop) {
+                            // 30秒一次向所有调度发起注册
                             TimeUnit.SECONDS.sleep(RegistryConfig.BEAT_TIMEOUT);
                         }
                     } catch (InterruptedException e) {
@@ -76,7 +82,7 @@ public class ExecutorRegistryThread {
                     }
                 }
 
-                // registry remove
+                // registry remove：注册过程异常，或者进程停止，需要向调度中心发起接触注册
                 try {
                     RegistryParam registryParam = new RegistryParam(RegistryConfig.RegistType.EXECUTOR.name(), appname, address);
                     for (AdminBiz adminBiz: XxlJobExecutor.getAdminBizList()) {

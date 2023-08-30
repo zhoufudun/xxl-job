@@ -41,6 +41,7 @@ public class EmbedServer {
                 // param
                 EventLoopGroup bossGroup = new NioEventLoopGroup();
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
+                // 自定义线程池，用于执行EmbedHttpServerHandler处理器的任务（调度中心推送到客户端的任务）
                 ThreadPoolExecutor bizThreadPool = new ThreadPoolExecutor(
                         0,
                         200,
@@ -68,6 +69,7 @@ public class EmbedServer {
                                 @Override
                                 public void initChannel(SocketChannel channel) throws Exception {
                                     channel.pipeline()
+                                             // userEventTriggered方法中主动关闭通道
                                             .addLast(new IdleStateHandler(0, 0, 30 * 3, TimeUnit.SECONDS))  // beat 3N, close if idle
                                             .addLast(new HttpServerCodec())
                                             .addLast(new HttpObjectAggregator(5 * 1024 * 1024))  // merge request & reponse to FULL
@@ -82,6 +84,9 @@ public class EmbedServer {
                     logger.info(">>>>>>>>>>> xxl-job remoting server start success, nettype = {}, port = {}", EmbedServer.class, port);
 
                     // start registry
+                    /**
+                     * 本地job任务注册到远程调度中，告诉调度中心本地的netty服务地址【调度中心不用netty，用的是httpclient、okhttp等，发起请求地址就是：http://127.0.0.1:9998/】
+                     */
                     startRegistry(appname, address);
 
                     // wait util stop
@@ -165,7 +170,7 @@ public class EmbedServer {
                 }
             });
         }
-
+        // 调度中心触发任务的时候：uri= /run
         private Object process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq) {
             // valid
             if (HttpMethod.POST != httpMethod) {
@@ -182,6 +187,7 @@ public class EmbedServer {
 
             // services mapping
             try {
+                // 判断调度中心发起的业务类型
                 switch (uri) {
                     case "/beat":
                         return executorBiz.beat();
@@ -234,7 +240,7 @@ public class EmbedServer {
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
             if (evt instanceof IdleStateEvent) {
-                ctx.channel().close();      // beat 3N, close if idle
+                ctx.channel().close();      // beat 3N, close if idle，90s没有读写，主动关闭通道
                 logger.debug(">>>>>>>>>>> xxl-job provider netty_http server close an idle channel.");
             } else {
                 super.userEventTriggered(ctx, evt);

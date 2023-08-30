@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * Created by xuxueli on 17/3/10.
+ * （故障转移）：按照顺序依次进行心跳检测，第一个心跳检测成功的机器选定为目标执行器并发起调度
  */
 public class ExecutorRouteFailover extends ExecutorRouter {
 
@@ -23,6 +24,9 @@ public class ExecutorRouteFailover extends ExecutorRouter {
             ReturnT<String> beatResult = null;
             try {
                 ExecutorBiz executorBiz = XxlJobScheduler.getExecutorBiz(address);
+                /**
+                 * 向具体某个远程执行下发任务之前，先执行心跳探测一下远程执行器是否存活
+                 */
                 beatResult = executorBiz.beat();
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);

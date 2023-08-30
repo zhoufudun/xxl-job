@@ -128,7 +128,9 @@ public class XxlJobHelper {
         StringWriter stringWriter = new StringWriter();
         e.printStackTrace(new PrintWriter(stringWriter));
         String appendLog = stringWriter.toString();
-
+        /**
+         * 只填写一层异常栈信息
+         */
         StackTraceElement callInfo = new Throwable().getStackTrace()[1];
         return logDetail(callInfo, appendLog);
     }

@@ -8,10 +8,21 @@ import java.lang.reflect.Method;
  * @author xuxueli 2019-12-11 21:12:18
  */
 public class MethodJobHandler extends IJobHandler {
-
+    /**
+     * 代理的类
+     */
     private final Object target;
+    /**
+     * 代理的方法
+     */
     private final Method method;
+    /**
+     * 执行代理方法前的初始化方法
+     */
     private Method initMethod;
+    /**
+     * 执行代理方法后的销毁方法
+     */
     private Method destroyMethod;
 
     public MethodJobHandler(Object target, Method method, Method initMethod, Method destroyMethod) {
@@ -22,6 +33,11 @@ public class MethodJobHandler extends IJobHandler {
         this.destroyMethod = destroyMethod;
     }
 
+    /**
+     * 执行代理方法
+     *
+     * @throws Exception
+     */
     @Override
     public void execute() throws Exception {
         Class<?>[] paramTypes = method.getParameterTypes();

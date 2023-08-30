@@ -5,18 +5,24 @@ import com.xxl.job.core.biz.client.ExecutorBizClient;
 import com.xxl.job.core.biz.model.*;
 import com.xxl.job.core.enums.ExecutorBlockStrategyEnum;
 import com.xxl.job.core.glue.GlueTypeEnum;
+import com.xxl.job.core.thread.JobThread;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Calendar;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * executor api test
- *
+ * <p>
  * Created by xuxueli on 17/5/12.
  */
 public class ExecutorBizTest {
 
     // admin-client
-    private static String addressUrl = "http://127.0.0.1:9999/";
+    private static String addressUrl = "http://127.0.0.1:8080/";
     private static String accessToken = null;
 
     @Test
@@ -33,7 +39,48 @@ public class ExecutorBizTest {
     }
 
     @Test
-    public void idleBeat(){
+    public void time() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            System.out.println(System.currentTimeMillis() % 1000);
+            System.out.println(Calendar.getInstance().get(Calendar.SECOND));
+
+            Thread.sleep(1000);
+
+            System.out.println(5000 - System.currentTimeMillis()%1000);
+        }
+    }
+
+    private static ConcurrentMap<Integer, Thread> jobThreadRepository = new ConcurrentHashMap<Integer, Thread>();
+
+    @Test
+    public void interrupted() throws Exception {
+
+
+        Thread thread = new Thread(new Runnable() {
+            private volatile boolean toStop = false;
+
+            @Override
+            public void run() {
+                while (!toStop){
+                    System.out.println("running");
+                    if(ThreadLocalRandom.current().nextBoolean()){
+//                        jobThreadRepository.get(1).interrupt();
+                        toStop=true;
+                    }
+                }
+                System.out.println("exit!!");
+            }
+        });
+
+        jobThreadRepository.putIfAbsent(1,thread);
+
+        thread.start();
+
+    }
+
+
+    @Test
+    public void idleBeat() {
         ExecutorBiz executorBiz = new ExecutorBizClient(addressUrl, accessToken);
 
         final int jobId = 0;
@@ -49,7 +96,7 @@ public class ExecutorBizTest {
     }
 
     @Test
-    public void run(){
+    public void run() {
         ExecutorBiz executorBiz = new ExecutorBizClient(addressUrl, accessToken);
 
         // trigger data
@@ -72,7 +119,7 @@ public class ExecutorBizTest {
     }
 
     @Test
-    public void kill(){
+    public void kill() {
         ExecutorBiz executorBiz = new ExecutorBizClient(addressUrl, accessToken);
 
         final int jobId = 0;
@@ -88,7 +135,7 @@ public class ExecutorBizTest {
     }
 
     @Test
-    public void log(){
+    public void log() {
         ExecutorBiz executorBiz = new ExecutorBizClient(addressUrl, accessToken);
 
         final long logDateTim = 0L;

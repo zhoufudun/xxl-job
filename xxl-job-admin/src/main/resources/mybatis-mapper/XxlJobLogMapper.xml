@@ -178,9 +178,9 @@
 
     <select id="findLogReport" resultType="java.util.Map" >
 		SELECT
-			COUNT(handle_code) triggerDayCount,
-			SUM(CASE WHEN (trigger_code in (0, 200) and handle_code = 0) then 1 else 0 end) as triggerDayCountRunning,
-			SUM(CASE WHEN handle_code = 200 then 1 else 0 end) as triggerDayCountSuc
+			COUNT(handle_code) triggerDayCount,   <!-- 统计所有任务个数-->
+			SUM(CASE WHEN (trigger_code in (0, 200) and handle_code = 0) then 1 else 0 end) as triggerDayCountRunning,  <!-- 统计运行中的任务个数-->
+			SUM(CASE WHEN handle_code = 200 then 1 else 0 end) as triggerDayCountSuc  <!-- 统计运行成功任务个数-->
 		FROM xxl_job_log
 		WHERE trigger_time BETWEEN #{from} and #{to}
     </select>
@@ -210,7 +210,7 @@
 					</if>
 				</trim>
 				ORDER BY t.trigger_time desc
-				LIMIT 0, #{clearBeforeNum}
+				LIMIT 0, #{clearBeforeNum}   <!--clearBeforeNum之内保留，之外清理-->
 				) t1
 				)
 			</if>
@@ -246,6 +246,8 @@
 		WHERE `id`= #{logId} AND `alarm_status` = #{oldAlarmStatus}
 	</update>
 
+
+
 	<select id="findLostJobIds" resultType="long" >
 		SELECT
 			t.id
@@ -253,10 +255,10 @@
 			xxl_job_log t
 			LEFT JOIN xxl_job_registry t2 ON t.executor_address = t2.registry_value
 		WHERE
-			t.trigger_code = 200
-				AND t.handle_code = 0
-				AND t.trigger_time <![CDATA[ <= ]]> #{losedTime}
-				AND t2.id IS NULL;
+			t.trigger_code = 200    <!--任务已经下发-->
+				AND t.handle_code = 0   <!--执行器任务回复ack之前都是0，正常回复后都是200错误码-->
+				AND t.trigger_time <![CDATA[ <= ]]> #{losedTime}   <!-- 下发时间距离现在超过10min -->
+				AND t2.id IS NULL;  <!--执行器注册的信息已经丢失，说明可能任务下发成功，但是执行器执行到一半被kill进程，导致无法回复ack，或者执行器回复ack的时候网络原因导致ack失败-->
 	</select>
 	<!--
 	SELECT t.id

@@ -71,6 +71,12 @@ public class JobInfoController {
 		return "jobinfo/jobinfo.index";
 	}
 
+	/**
+	 * 获取争对某个某个用户有权限的日志任务组（XxlJobGroup）
+	 * @param request
+	 * @param jobGroupList_all
+	 * @return
+	 */
 	public static List<XxlJobGroup> filterJobGroupByRole(HttpServletRequest request, List<XxlJobGroup> jobGroupList_all){
 		List<XxlJobGroup> jobGroupList = new ArrayList<>();
 		if (jobGroupList_all!=null && jobGroupList_all.size()>0) {
@@ -91,6 +97,12 @@ public class JobInfoController {
 		}
 		return jobGroupList;
 	}
+
+	/**
+	 * 验证用户是否有某个定时任务组的权限
+	 * @param request
+	 * @param jobGroup
+	 */
 	public static void validPermission(HttpServletRequest request, int jobGroup) {
 		XxlJobUser loginUser = (XxlJobUser) request.getAttribute(LoginService.LOGIN_IDENTITY_KEY);
 		if (!loginUser.validPermission(jobGroup)) {

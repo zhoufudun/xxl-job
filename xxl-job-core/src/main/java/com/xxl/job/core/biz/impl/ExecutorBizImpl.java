@@ -18,6 +18,8 @@ import java.util.Date;
 
 /**
  * Created by xuxueli on 17/3/1.
+ *
+ * 执行器客户端使用，用于接受调度中心的请求
  */
 public class ExecutorBizImpl implements ExecutorBiz {
     private static Logger logger = LoggerFactory.getLogger(ExecutorBizImpl.class);
@@ -144,6 +146,9 @@ public class ExecutorBizImpl implements ExecutorBiz {
         }
 
         // push data to queue
+        /**
+         * 调度中心触发的任务先加入trigger队列，由另外 具体定时任务绑定的JobThread线程执行具体的任务执行
+         */
         ReturnT<String> pushResult = jobThread.pushTriggerQueue(triggerParam);
         return pushResult;
     }
@@ -160,12 +165,20 @@ public class ExecutorBizImpl implements ExecutorBiz {
         return new ReturnT<String>(ReturnT.SUCCESS_CODE, "job thread already killed.");
     }
 
+    /**
+     * 执行器收到远程调度中查看日志执行详细信息请求，本地执行器需要从日志文件查询
+     *
+     * @param logParam
+     * @return
+     */
     @Override
     public ReturnT<LogResult> log(LogParam logParam) {
+        logger.debug("client receive remote center request log detail, LogParam:{}",logParam);
         // log filename: logPath/yyyy-MM-dd/9999.log
         String logFileName = XxlJobFileAppender.makeLogFileName(new Date(logParam.getLogDateTim()), logParam.getLogId());
 
         LogResult logResult = XxlJobFileAppender.readLog(logFileName, logParam.getFromLineNum());
+        logger.debug("client receive remote center request log detail, and process finished, logResult:{}",logResult);
         return new ReturnT<LogResult>(logResult);
     }
 

@@ -110,7 +110,8 @@ public class JobThread extends Thread{
 
             TriggerParam triggerParam = null;
             try {
-				// to check toStop signal, we need cycle, so wo cannot use queue.take(), instand of poll(timeout)
+				// to check toStop signal, we need cycle, so wo cannot use queue.take(), instant of poll(timeout)
+				//
 				triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
 				if (triggerParam!=null) {
 					running = true;
@@ -134,6 +135,9 @@ public class JobThread extends Thread{
 
 					if (triggerParam.getExecutorTimeout() > 0) {
 						// limit timeout
+						/**
+						 * 调度中心设置了执行器的超时时间，此时需要异步执行
+						 */
 						Thread futureThread = null;
 						try {
 							FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new Callable<Boolean>() {
@@ -149,7 +153,7 @@ public class JobThread extends Thread{
 							});
 							futureThread = new Thread(futureTask);
 							futureThread.start();
-
+							// 阻塞等待
 							Boolean tempResult = futureTask.get(triggerParam.getExecutorTimeout(), TimeUnit.SECONDS);
 						} catch (TimeoutException e) {
 
@@ -163,6 +167,9 @@ public class JobThread extends Thread{
 						}
 					} else {
 						// just execute
+						/**
+						 * 同步执行
+						 */
 						handler.execute();
 					}
 
@@ -183,15 +190,23 @@ public class JobThread extends Thread{
 					);
 
 				} else {
+					/**
+					 * 连续30次，共90s，没有从队列获取到任务
+					 */
 					if (idleTimes > 30) {
 						if(triggerQueue.size() == 0) {	// avoid concurrent trigger causes jobId-lost
+							/**
+							 * 任务线程长时间没有任务(有些任务只会执行一次，或者有些任务很长时间才执行一次)，直接退出线程，销毁，节约资源
+							 */
 							XxlJobExecutor.removeJobThread(jobId, "excutor idel times over limit.");
+							logger.warn("jobId= "+jobId+" executor Thread idle times over limit.");
 						}
 					}
 				}
 			} catch (Throwable e) {
 				if (toStop) {
 					XxlJobHelper.log("<br>----------- JobThread toStop, stopReason:" + stopReason);
+					logger.warn("<br>----------- JobThread toStop, stopReason:" + stopReason);
 				}
 
 				// handle result
@@ -221,8 +236,16 @@ public class JobThread extends Thread{
 								XxlJobContext.HANDLE_CODE_FAIL,
 								stopReason + " [job running, killed]" )
 						);
+						XxlJobHelper.log("<br>----------- JobThread toStop, stopReason:" + stopReason + "[job running, killed]");
                     }
-                }
+                }else{
+                	if(toStop){
+                		// 超时退出需要记录日志文件
+						XxlJobHelper.log("<br>----------- JobThread toStop, stopReason:" + stopReason);
+					}else {
+                		//
+					}
+				}
             }
         }
 

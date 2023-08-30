@@ -32,6 +32,12 @@ public class JobCompleteHelper {
 	private ThreadPoolExecutor callbackThreadPool = null;
 	private Thread monitorThread;
 	private volatile boolean toStop = false;
+
+	/**
+	 * 初始化线程池
+	 * 1、执行器执行完毕后的任务回调
+	 * 2、
+	 */
 	public void start(){
 
 		// for callback
@@ -76,6 +82,11 @@ public class JobCompleteHelper {
 					try {
 						// 任务结果丢失处理：调度记录停留在 "运行中" 状态超过10min，且对应执行器心跳注册失败不在线，则将本地调度主动标记失败；
 						Date losedTime = DateUtil.addMinutes(new Date(), -10);
+						/**
+						 * 可能产生这个问题的原因：
+						 * 1、任务下发成功，但是执行器执行到一半被kill进程，导致无法回复ack，
+						 * 2、任务下发成功，任务执行出错或者执行器回复ack的时候网络原因导致ack失败，执行器没有重试ack和重试任务执行
+						 */
 						List<Long> losedJobIds  = XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().findLostJobIds(losedTime);
 
 						if (losedJobIds!=null && losedJobIds.size()>0) {
@@ -85,6 +96,9 @@ public class JobCompleteHelper {
 								jobLog.setId(logId);
 
 								jobLog.setHandleTime(new Date());
+								/**
+								 * 标记任务处理失败
+								 */
 								jobLog.setHandleCode(ReturnT.FAIL_CODE);
 								jobLog.setHandleMsg( I18nUtil.getString("joblog_lost_fail") );
 
@@ -135,6 +149,11 @@ public class JobCompleteHelper {
 
 	// ---------------------- helper ----------------------
 
+	/**
+	 * 处理执行器执行任务完毕后的任务回调给调度中心
+	 * @param callbackParamList
+	 * @return
+	 */
 	public ReturnT<String> callback(List<HandleCallbackParam> callbackParamList) {
 
 		callbackThreadPool.execute(new Runnable() {
@@ -151,14 +170,21 @@ public class JobCompleteHelper {
 		return ReturnT.SUCCESS;
 	}
 
+	/**
+	 * 执行器将执行结果回调给调度中心
+	 *
+	 * @param handleCallbackParam
+	 * @return
+	 */
 	private ReturnT<String> callback(HandleCallbackParam handleCallbackParam) {
 		// valid log item
 		XxlJobLog log = XxlJobAdminConfig.getAdminConfig().getXxlJobLogDao().load(handleCallbackParam.getLogId());
 		if (log == null) {
 			return new ReturnT<String>(ReturnT.FAIL_CODE, "log item not found.");
 		}
+		// 已经回调过后的code!=0
 		if (log.getHandleCode() > 0) {
-			return new ReturnT<String>(ReturnT.FAIL_CODE, "log repeate callback.");     // avoid repeat callback, trigger child job etc
+			return new ReturnT<String>(ReturnT.FAIL_CODE, "log repeat callback.");     // avoid repeat callback, trigger child job etc
 		}
 
 		// handle msg

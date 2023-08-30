@@ -20,6 +20,8 @@ public class FileUtil {
     /**
      * delete recursively
      *
+     * 递归删除该目录下的所有文件
+     *
      * @param root
      * @return
      */

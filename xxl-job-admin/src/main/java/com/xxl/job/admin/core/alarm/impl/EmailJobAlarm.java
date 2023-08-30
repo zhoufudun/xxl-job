@@ -21,6 +21,8 @@ import java.util.Set;
 /**
  * job alarm by email
  *
+ * 下发失败的任务，需要告警
+ *
  * @author xuxueli 2020-01-19
  */
 @Component
@@ -72,6 +74,7 @@ public class EmailJobAlarm implements JobAlarm {
                     helper.setText(content, true);
 
                     XxlJobAdminConfig.getAdminConfig().getMailSender().send(mimeMessage);
+                    logger.info(">>>>>>>>>>> xxl-job, job fail alarm email send success, JobLogId:{}", jobLog.getId());
                 } catch (Exception e) {
                     logger.error(">>>>>>>>>>> xxl-job, job fail alarm email send error, JobLogId:{}", jobLog.getId(), e);
 

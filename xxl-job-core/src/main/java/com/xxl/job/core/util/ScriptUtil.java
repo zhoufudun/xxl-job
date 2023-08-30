@@ -21,9 +21,9 @@ public class ScriptUtil {
 
     /**
      * make script file
-     *
-     * @param scriptFileName
-     * @param content
+     * 创建脚本
+     * @param scriptFileName   脚本文件名称
+     * @param content          脚本内容
      * @throws IOException
      */
     public static void markScriptFile(String scriptFileName, String content) throws IOException {
@@ -70,6 +70,9 @@ public class ScriptUtil {
                     cmdarray.add(param);
                 }
             }
+            /**
+             * 执行脚本的命令：bash home/shell/copy.sh args1 args2
+             */
             String[] cmdarrayFinal = cmdarray.toArray(new String[cmdarray.size()]);
 
             // process-exec

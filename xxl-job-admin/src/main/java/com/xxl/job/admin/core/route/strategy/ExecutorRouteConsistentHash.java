@@ -70,9 +70,15 @@ public class ExecutorRouteConsistentHash extends ExecutorRouter {
 
         long jobHash = hash(String.valueOf(jobId));
         SortedMap<Long, String> lastRing = addressRing.tailMap(jobHash);
+        /**
+         * 沿着环顺时针能寻找第一个节点，那就使用最近的节点
+         */
         if (!lastRing.isEmpty()) {
             return lastRing.get(lastRing.firstKey());
         }
+        /**
+         * 沿着环顺时针不能寻找第一个节点，那就使用环的第一个节点
+         */
         return addressRing.firstEntry().getValue();
     }
 

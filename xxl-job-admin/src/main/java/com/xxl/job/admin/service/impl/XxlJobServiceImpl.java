@@ -335,7 +335,9 @@ public class XxlJobServiceImpl implements XxlJobService {
 	@Override
 	public ReturnT<String> stop(int id) {
         XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(id);
-
+		/**
+		 * 停止触发
+		 */
 		xxlJobInfo.setTriggerStatus(0);
 		xxlJobInfo.setTriggerLastTime(0);
 		xxlJobInfo.setTriggerNextTime(0);

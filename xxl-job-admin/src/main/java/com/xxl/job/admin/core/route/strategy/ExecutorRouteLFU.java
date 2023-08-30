@@ -29,6 +29,9 @@ public class ExecutorRouteLFU extends ExecutorRouter {
         }
 
         // lfu item init
+        /**
+         * 先获取jobId对应的每个节点的访问次数
+         */
         HashMap<String, Integer> lfuItemMap = jobLfuMap.get(jobId);     // Key排序可以用TreeMap+构造入参Compare；Value排序暂时只能通过ArrayList；
         if (lfuItemMap == null) {
             lfuItemMap = new HashMap<String, Integer>();
@@ -42,6 +45,9 @@ public class ExecutorRouteLFU extends ExecutorRouter {
             }
         }
         // remove old
+        /**
+         * 移除lfuItemMap中key不存于addressList中的值（远程地址）
+         */
         List<String> delKeys = new ArrayList<>();
         for (String existKey: lfuItemMap.keySet()) {
             if (!addressList.contains(existKey)) {
@@ -55,6 +61,9 @@ public class ExecutorRouteLFU extends ExecutorRouter {
         }
 
         // load least userd count address
+        /**
+         * 按照value中的升序
+         */
         List<Map.Entry<String, Integer>> lfuItemList = new ArrayList<Map.Entry<String, Integer>>(lfuItemMap.entrySet());
         Collections.sort(lfuItemList, new Comparator<Map.Entry<String, Integer>>() {
             @Override
@@ -63,8 +72,11 @@ public class ExecutorRouteLFU extends ExecutorRouter {
             }
         });
 
+        /**
+         * 升序处理后，list中第一个Entry的value就是最小的值
+         */
         Map.Entry<String, Integer> addressItem = lfuItemList.get(0);
-        String minAddress = addressItem.getKey();
+        // 本次访问，对应的value+1
         addressItem.setValue(addressItem.getValue() + 1);
 
         return addressItem.getKey();

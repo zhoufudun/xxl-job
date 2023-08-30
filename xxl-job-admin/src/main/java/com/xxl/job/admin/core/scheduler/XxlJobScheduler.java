@@ -77,7 +77,7 @@ public class XxlJobScheduler  {
     }
 
     // ---------------------- executor-client ----------------------
-    private static ConcurrentMap<String, ExecutorBiz> executorBizRepository = new ConcurrentHashMap<String, ExecutorBiz>();
+    private static ConcurrentMap<String, ExecutorBiz> executorBizClient = new ConcurrentHashMap<String, ExecutorBiz>();
     public static ExecutorBiz getExecutorBiz(String address) throws Exception {
         // valid
         if (address==null || address.trim().length()==0) {
@@ -86,15 +86,18 @@ public class XxlJobScheduler  {
 
         // load-cache
         address = address.trim();
-        ExecutorBiz executorBiz = executorBizRepository.get(address);
+        ExecutorBiz executorBiz = executorBizClient.get(address);
         if (executorBiz != null) {
             return executorBiz;
         }
 
         // set-cache
+        /**
+         * 每一个远程执行器都有一个ExecutorBizClient客户端
+         */
         executorBiz = new ExecutorBizClient(address, XxlJobAdminConfig.getAdminConfig().getAccessToken());
 
-        executorBizRepository.put(address, executorBiz);
+        executorBizClient.put(address, executorBiz);
         return executorBiz;
     }
 

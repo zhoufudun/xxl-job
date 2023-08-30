@@ -22,6 +22,7 @@ public class AdminBizClient implements AdminBiz {
         this.accessToken = accessToken;
 
         // valid
+        // http://127.0.0.1:8080/xxl-job-admin  变成==》 http://127.0.0.1:8080/xxl-job-admin/
         if (!this.addressUrl.endsWith("/")) {
             this.addressUrl = this.addressUrl + "/";
         }

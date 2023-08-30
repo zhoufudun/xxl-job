@@ -50,6 +50,7 @@ public class PermissionInterceptor implements AsyncHandlerInterceptor {
 			if (needAdminuser && loginUser.getRole()!=1) {
 				throw new RuntimeException(I18nUtil.getString("system_permission_limit"));
 			}
+			// 用户信息保持到上下文
 			request.setAttribute(LoginService.LOGIN_IDENTITY_KEY, loginUser);
 		}
 
